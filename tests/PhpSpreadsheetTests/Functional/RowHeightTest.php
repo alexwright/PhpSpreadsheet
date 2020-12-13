@@ -2,10 +2,11 @@
 
 namespace PhpOffice\PhpSpreadsheetTests\Functional;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
-class ColumnWidthTest extends AbstractFunctional
+class RowHeightTest extends AbstractFunctional
 {
     public function providerFormats()
     {
@@ -19,61 +20,61 @@ class ColumnWidthTest extends AbstractFunctional
      *
      * @param $format
      */
-    public function testReadColumnWidth($format): void
+    public function testReadRowHeight($format): void
     {
         // create new sheet with column width
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setCellValue('A1', 'Hello World !');
-        $sheet->getColumnDimension('A')->setWidth(20);
-        $this->assertColumn($spreadsheet);
+        $sheet->getRowDimension('1')->setRowHeight(20);
+        $this->assertRow($spreadsheet);
 
         $reloadedSpreadsheet = $this->writeAndReload($spreadsheet, $format);
-        $this->assertColumn($reloadedSpreadsheet);
+        $this->assertRow($reloadedSpreadsheet);
     }
 
     /**
      * @dataProvider providerFormats
-     *
+     * 
      * @param $format
      */
-    public function testReadColumnWidthWithReadFilter($format): void
+    public function testReadRowHeightWithReadFilter($format): void
     {
         // Same test with a read filter removing a single row
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        foreach (range(1, 5) as $row) {
-            $sheet->setCellValue("A{$row}", 'Hello World !');
+        foreach (range(1, 5) as $columnIndex) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($columnIndex) . '1', 'Hello World !');
         }
 
-        // isFilteredColumn iterates rowAttributes when calling the read filter
-        $sheet->getRowDimension(5)->setRowHeight(10);
+        // isFilteredRow iterates columnAttributes when calling the read filter
+        $sheet->getColumnDimension('E')->setWidth(64);
 
-        $sheet->getColumnDimension('A')->setWidth(20);
-        $this->assertColumn($spreadsheet);
+        $sheet->getRowDimension('1')->setRowHeight(20);
+        $this->assertRow($spreadsheet);
 
-        // A reader-customeiser closure and ReadFilter implementation that skips rows >4
+        // A reader-customeiser closure and ReadFilter implementation that skips column 'E'
         $readerCustomizer = function ($reader) {
             $readFilterStub = $this->createMock(IReadFilter::class);
             $readFilterStub->method('readCell')
                 ->willReturnCallback(function ($column, $row, $worksheetName = '') {
-                    return $row <= 4;
+                    return $column !== 'E';
                 });
             $reader->setReadFilter($readFilterStub);
         };
 
         // Save and reload a filtered set and assert the same width
         $reloadedSpreadsheet = $this->writeAndReload($spreadsheet, $format, $readerCustomizer);
-        $this->assertColumn($reloadedSpreadsheet);
+        $this->assertRow($reloadedSpreadsheet);
     }
 
-    private function assertColumn(Spreadsheet $spreadsheet): void
+    private function assertRow(Spreadsheet $spreadsheet): void
     {
         $sheet = $spreadsheet->getActiveSheet();
-        $columnDimensions = $sheet->getColumnDimensions();
+        $rowDimensions = $sheet->getRowDimensions();
 
-        self::assertArrayHasKey('A', $columnDimensions);
-        $column = array_shift($columnDimensions);
-        self::assertEquals(20, $column->getWidth());
+        self::assertArrayHasKey('1', $rowDimensions);
+        $row = array_shift($rowDimensions);
+        self::assertEquals(20, $row->getRowHeight());
     }
 }
