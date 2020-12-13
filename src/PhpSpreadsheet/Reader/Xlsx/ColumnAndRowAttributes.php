@@ -121,13 +121,16 @@ class ColumnAndRowAttributes extends BaseParserClass
 
     private function isFilteredColumn(IReadFilter $readFilter, $columnCoordinate, array $rowsAttributes)
     {
+        if (empty($rowAttributes)) {
+            return false;
+        }
         foreach ($rowsAttributes as $rowCoordinate => $rowAttributes) {
-            if (!$readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
-                return true;
+            if ($readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     private function readColumnAttributes(SimpleXMLElement $worksheetCols, $readDataOnly)
@@ -173,13 +176,16 @@ class ColumnAndRowAttributes extends BaseParserClass
 
     private function isFilteredRow(IReadFilter $readFilter, $rowCoordinate, array $columnsAttributes)
     {
+        if (empty($columnAttributes)) {
+            return false;
+        }
         foreach ($columnsAttributes as $columnCoordinate => $columnAttributes) {
-            if (!$readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
-                return true;
+            if ($readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     private function readRowAttributes(SimpleXMLElement $worksheetRow, $readDataOnly)
