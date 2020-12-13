@@ -630,19 +630,6 @@ class Xlsx extends BaseReader
                                 $docSheet->setSheetState((string) $eleSheet['state']);
                             }
 
-                            if ($xmlSheet) {
-                                if (isset($xmlSheet->sheetViews, $xmlSheet->sheetViews->sheetView)) {
-                                    $sheetViews = new SheetViews($xmlSheet->sheetViews->sheetView, $docSheet);
-                                    $sheetViews->load();
-                                }
-
-                                $sheetViewOptions = new SheetViewOptions($docSheet, $xmlSheet);
-                                $sheetViewOptions->load($this->getReadDataOnly());
-
-                                (new ColumnAndRowAttributes($docSheet, $xmlSheet))
-                                    ->load($this->getReadFilter(), $this->getReadDataOnly());
-                            }
-
                             if ($xmlSheet && $xmlSheet->sheetData && $xmlSheet->sheetData->row) {
                                 $cIndex = 1; // Cell Start from 1
                                 foreach ($xmlSheet->sheetData->row as $row) {
@@ -754,6 +741,19 @@ class Xlsx extends BaseReader
                                     }
                                     ++$cIndex;
                                 }
+                            }
+
+                            if ($xmlSheet) {
+                                if (isset($xmlSheet->sheetViews, $xmlSheet->sheetViews->sheetView)) {
+                                    $sheetViews = new SheetViews($xmlSheet->sheetViews->sheetView, $docSheet);
+                                    $sheetViews->load();
+                                }
+
+                                $sheetViewOptions = new SheetViewOptions($docSheet, $xmlSheet);
+                                $sheetViewOptions->load($this->getReadDataOnly());
+
+                                (new ColumnAndRowAttributes($docSheet, $xmlSheet))
+                                    ->load($this->getReadFilter(), $this->getReadDataOnly());
                             }
 
                             if (!$this->readDataOnly && $xmlSheet && $xmlSheet->conditionalFormatting) {

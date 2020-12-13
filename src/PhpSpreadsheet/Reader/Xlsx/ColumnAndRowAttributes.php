@@ -96,7 +96,7 @@ class ColumnAndRowAttributes extends BaseParserClass
         foreach ($columnsAttributes as $columnCoordinate => $columnAttributes) {
             if (
                 $readFilter === null ||
-                !$this->isFilteredColumn($readFilter, $columnCoordinate, $rowsAttributes)
+                !$this->isFilteredColumn($readFilter, $columnCoordinate)
             ) {
                 if (!isset($columnsAttributesAreSet[$columnCoordinate])) {
                     $this->setColumnAttributes($columnCoordinate, $columnAttributes);
@@ -109,7 +109,7 @@ class ColumnAndRowAttributes extends BaseParserClass
         foreach ($rowsAttributes as $rowCoordinate => $rowAttributes) {
             if (
                 $readFilter === null ||
-                !$this->isFilteredRow($readFilter, $rowCoordinate, $columnsAttributes)
+                !$this->isFilteredRow($readFilter, $rowCoordinate)
             ) {
                 if (!isset($rowsAttributesAreSet[$rowCoordinate])) {
                     $this->setRowAttributes($rowCoordinate, $rowAttributes);
@@ -119,17 +119,13 @@ class ColumnAndRowAttributes extends BaseParserClass
         }
     }
 
-    private function isFilteredColumn(IReadFilter $readFilter, $columnCoordinate, array $rowsAttributes)
+    private function isFilteredColumn(IReadFilter $readFilter, $columnCoordinate)
     {
-        if (empty($rowAttributes)) {
-            return false;
-        }
-        foreach ($rowsAttributes as $rowCoordinate => $rowAttributes) {
+        for ($rowCoordinate = 1; $rowCoordinate <= $this->worksheet->getHighestRow(); $rowCoordinate++) {
             if ($readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -174,17 +170,14 @@ class ColumnAndRowAttributes extends BaseParserClass
         return $columnAttributes;
     }
 
-    private function isFilteredRow(IReadFilter $readFilter, $rowCoordinate, array $columnsAttributes)
+    private function isFilteredRow(IReadFilter $readFilter, $rowCoordinate)
     {
-        if (empty($columnAttributes)) {
-            return false;
-        }
-        foreach ($columnsAttributes as $columnCoordinate => $columnAttributes) {
-            if ($readFilter->readCell($columnCoordinate, $rowCoordinate, $this->worksheet->getTitle())) {
+        $lastColumnIndex = Coordinate::columnIndexFromString($this->worksheet->getHighestColumn());
+        for ($columnIndex = 1; $columnIndex <= $lastColumnIndex; $columnIndex++) {
+            if ($readFilter->readCell(Coordinate::stringFromColumnIndex($columnIndex), $rowCoordinate)) {
                 return false;
             }
         }
-
         return true;
     }
 
